@@ -22,12 +22,14 @@ CREATE TABLE BITACORA_RESERVAS (
 CREATE SEQUENCE SEQ_BITACORA
     START WITH 1
     INCREMENT BY 1
-    NOCACHE;----------------------
+    NOCACHE
+    NOCYCLE;----------------------
 
 CREATE OR REPLACE TRIGGER TG_BITACORA_RESERVAS AFTER UPDATE OF IMPORTE ON RESERVAS
 FOR EACH ROW
 DECLARE
     V_ERROR VARCHAR2(200);
+    V_CODIGO NUMBER;
 BEGIN   
     INSERT INTO BITACORA_RESERVAS(
         ID_BITACORA,
@@ -40,17 +42,32 @@ BEGIN
     VALUES(
         SEQ_BITACORA.NEXTVAL,
         :OLD.ID_RESERVA,
-        :OLD,IMPORTE,
-        :NEW:IMPORTE,
+        :OLD.IMPORTE,
+        :NEW.IMPORTE,
         SYSDATE,
         USER
     );
 EXCEPTION
     WHEN OTHERS THEN
-        V_ERROR :=SQLERM;
-        DBMS_OUT.PUT_LINE('Error en la Bitácora: ' ||V_ERROR);
+        V_ERROR :=SQLERRM;
+        V_CODIGO:=SQLCODE;
+    IF 
+        V_CODIGO =-1 THEN
+        DBMS_OUTPUT.PUT_LINE('Error: ID duplicado en la bitacora');
+    ELSIF 
+        V_CODIGO = -6502 THEN
+        DBMS_OUTPUT.PUT_LINE('Error: Tipo de dato incorrecto');
+    ELSIF 
+        V_CODIGO = -1400 THEN
+        DBMS_OUTPUT.PUT_LINE('Error: Se intento insertar un valor nulo');
+    ELSIF 
+        V_CODIGO = -2291 THEN
+        DBMS_OUTPUT.PUT_LINE('Error: Violacion en la llave foranea');
+    ELSE
+        DBMS_OUTPUT.PUT_LINE('Ocurrio un error' || V_CODIGO || ' ' || V_ERROR );
+    END IF;
 
 END;
-
+/
 
 
