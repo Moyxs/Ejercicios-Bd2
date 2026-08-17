@@ -6,6 +6,7 @@
 
 --SET SERVEROUTPUT ON SIZE UNLIMITED;
 
+
 DECLARE
     CURSOR C_RESERVAS IS 
         SELECT r.id_reserva, r.importe, r.cli_nif, r.trs_id_treserva,
